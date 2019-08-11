@@ -1,2 +1,2 @@
-hello	world	wellcome
-hello	flink	demo	file
+hello	world	welcome
+hello	welcome
