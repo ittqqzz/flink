@@ -20,6 +20,7 @@ public class StreamingWCJavaApp {
         DataStreamSource<String> text = env.socketTextStream("120.79.241.167", 80);
 
         // 3. 操作
+        // new FlatMapFunction 中第一个泛型代表入参，第二个代表输出数据的类型
         text.flatMap(new FlatMapFunction<String, Tuple2<String, Integer>>() {
             @Override
             public void flatMap(String s, Collector<Tuple2<String, Integer>> collector) throws Exception {

@@ -23,6 +23,7 @@ public class BatchWCJavaApp {
         // 3. 数据操作
         // 3.1 每一行都按照指定的分隔符拆分，然后统计每一个单词出现的次数
         // 3.2 合并操作：group
+        // new FlatMapFunction 中第一个泛型代表入参，第二个代表输出数据的类型
         text.flatMap(new FlatMapFunction<String, Tuple2<String, Integer>>() {// 进来一个字符串，转成字符串&频率
             @Override
             public void flatMap(String s, Collector<Tuple2<String, Integer>> collector) throws Exception {
