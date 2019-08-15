@@ -1,0 +1,7 @@
+hadoop
+spark
+flink
+strom
+sppakk
+sopooa
+sjaygjas
