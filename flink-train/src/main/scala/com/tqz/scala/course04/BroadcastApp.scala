@@ -20,9 +20,9 @@ object BroadcastApp {
         // 3. 获取广播出去的数据集
         import scala.collection.JavaConverters._
         val list = broadcastSet = getRuntimeContext().getBroadcastVariable[String]("broadcastSetName").asScala
-        for( x <- list:Unit ){
-
-        }
+//        for( x <- list:Unit ){
+//
+//        }
       }
 
       override def map(value: String): String = {
