@@ -4,6 +4,7 @@ import org.apache.flink.api.common.functions.FlatMapFunction;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.streaming.api.datastream.DataStreamSource;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.streaming.api.windowing.time.Time;
 import org.apache.flink.util.Collector;
 
 
@@ -28,7 +29,7 @@ public class DataStreamDataSourceApp {
 
     public static void socketFunction(StreamExecutionEnvironment env) {
         // 2. 获取数据
-        DataStreamSource<String> text = env.socketTextStream("120.***", 80);
+        DataStreamSource<String> text = env.socketTextStream("120.79.241.167", 8580);
 
         // 3. 操作数据：统计单词频率
         text.flatMap(new FlatMapFunction<String, Tuple2<String, Integer>>() {
@@ -36,9 +37,12 @@ public class DataStreamDataSourceApp {
             public void flatMap(String in, Collector<Tuple2<String, Integer>> out) throws Exception {
                 String[] tokens = in.split(",");
                 for (String token: tokens) {
-                    out.collect(new Tuple2<>(token, 1));
+                    if (token.length() > 0) {
+                        out.collect(new Tuple2<>(token, 1));
+                    }
                 }
             }
-        }).keyBy(0).sum(1).print();
+        }).keyBy(0).timeWindow(Time.seconds(3)).sum(1).print();
+
     }
 }
