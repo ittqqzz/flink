@@ -42,7 +42,10 @@ public class DataStreamDataSourceApp {
                     }
                 }
             }
-        }).keyBy(0).timeWindow(Time.seconds(3)).sum(1).print();
+        }).keyBy(0)
+                //.countWindow(1) // 每个窗口里面只要放入了一个元素就会被触发
+                .countWindow(2) // 每个窗口里面只要放入了 2 个元素就会被触发
+                .sum(1).print();
 
     }
 }
