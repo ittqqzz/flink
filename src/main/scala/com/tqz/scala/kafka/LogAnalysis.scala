@@ -1,4 +1,4 @@
-package com.tqz.scala.project
+package com.tqz.scala.kafka
 
 import java.text.SimpleDateFormat
 import java.util.{Date, Properties}
@@ -26,7 +26,7 @@ import org.slf4j.LoggerFactory
 import scala.collection.mutable.ArrayBuffer
 
 /**
-  * Author: Michael PK
+  * 消费 java 代码里面 kafka 构造的数据
   */
 object LogAnalysis {
 

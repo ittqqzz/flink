@@ -41,7 +41,7 @@ public class StreamingWCJavaApp {
                     }
                 })
                 .timeWindow(Time.seconds(5))
-                .sum("count")
+                .sum("amount")
                 .print();
 
         env.execute("StreamingWCJavaApp");
@@ -80,7 +80,7 @@ public class StreamingWCJavaApp {
         public String toString() {
             return "WC{" +
                     "word='" + word + '\'' +
-                    ", count=" + count +
+                    ", amount=" + count +
                     '}';
         }
     }

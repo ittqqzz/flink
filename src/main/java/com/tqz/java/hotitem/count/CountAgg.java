@@ -1,6 +1,6 @@
-package com.tqz.java.practice.count;
+package com.tqz.java.hotitem.count;
 
-import com.tqz.java.practice.entity.UserBehavior;
+import com.tqz.java.hotitem.entity.UserBehavior;
 import org.apache.flink.api.common.functions.AggregateFunction;
 
 /**

@@ -1,4 +1,4 @@
-package com.tqz.java.practice.entity;
+package com.tqz.java.hotitem.entity;
 
 /** 用户行为数据结构 **/
 public class UserBehavior {

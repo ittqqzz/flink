@@ -44,7 +44,7 @@ public class JavaWindowsProcessApp {
                         for (Tuple2<Integer, Integer> in: elements) {
                             count++;
                         }
-                        out.collect("Window: " + context.window() + "count: " + count);
+                        out.collect("Window: " + context.window() + "amount: " + count);
                     }
                 })
         .print()

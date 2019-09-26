@@ -1,4 +1,4 @@
-package com.tqz.java.project;
+package com.tqz.java.kafka;
 
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
@@ -10,7 +10,7 @@ import java.util.Properties;
 import java.util.Random;
 
 /**
- * Author: Michael PK
+ * 用 java 代码为 scala 里面的 kafka 提供数据
  */
 public class PKKafkaProducer {
 

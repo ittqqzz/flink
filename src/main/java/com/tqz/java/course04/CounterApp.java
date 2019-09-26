@@ -38,7 +38,7 @@ public class CounterApp {
                 return in + 1; // 意思是将输入的每一个值都 map 为 _+1 的样子
             }
         }).setParallelism(1)
-                .writeAsText("D:\\MyConfiguration\\qinzheng.tian\\IdeaProjects\\flink\\output\\count", FileSystem.WriteMode.OVERWRITE);
+                .writeAsText("D:\\MyConfiguration\\qinzheng.tian\\IdeaProjects\\flink\\output\\amount", FileSystem.WriteMode.OVERWRITE);
 
         JobExecutionResult jobExecutionResult = env.execute();
         Integer countNum = jobExecutionResult.getAccumulatorResult("counter");

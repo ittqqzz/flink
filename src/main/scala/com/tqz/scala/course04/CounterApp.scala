@@ -44,7 +44,7 @@ object CounterApp {
         in
       }
     }).setParallelism(1)
-      .writeAsText("D:\\MyConfiguration\\qinzheng.tian\\IdeaProjects\\flink\\output\\count.txt", WriteMode.OVERWRITE)
+      .writeAsText("D:\\MyConfiguration\\qinzheng.tian\\IdeaProjects\\flink\\output\\amount.txt", WriteMode.OVERWRITE)
     // 4. 取出计数器数据（数据必须 sink 出去）
     val jobResult = env.execute("CounterApp")
     val countNum = jobResult.getAccumulatorResult[Long]("counter")

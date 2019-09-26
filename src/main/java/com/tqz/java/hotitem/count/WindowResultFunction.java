@@ -1,4 +1,4 @@
-package com.tqz.java.practice.count;
+package com.tqz.java.hotitem.count;
 
 import org.apache.flink.api.java.tuple.Tuple;
 import org.apache.flink.api.java.tuple.Tuple1;
@@ -17,7 +17,7 @@ public class WindowResultFunction implements WindowFunction<Long, ItemViewCount,
     public void apply(
             Tuple key,  // 窗口的主键，即 itemId
             TimeWindow window,  // 窗口
-            Iterable<Long> aggregateResult, // 聚合函数的结果，即 count 值
+            Iterable<Long> aggregateResult, // 聚合函数的结果，即 amount 值
             Collector<ItemViewCount> collector  // 输出类型为 ItemViewCount
     ) throws Exception {
         Long itemId = ((Tuple1<Long>) key).f0;

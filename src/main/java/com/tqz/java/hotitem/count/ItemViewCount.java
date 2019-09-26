@@ -1,4 +1,4 @@
-package com.tqz.java.practice.count;
+package com.tqz.java.hotitem.count;
 
 /**
  * 商品点击量(窗口操作的输出类型)

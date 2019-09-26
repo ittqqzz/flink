@@ -1,9 +1,9 @@
-package com.tqz.java.practice;
+package com.tqz.java.hotitem;
 
-import com.tqz.java.practice.count.CountAgg;
-import com.tqz.java.practice.count.ItemViewCount;
-import com.tqz.java.practice.count.WindowResultFunction;
-import com.tqz.java.practice.entity.UserBehavior;
+import com.tqz.java.hotitem.count.CountAgg;
+import com.tqz.java.hotitem.count.ItemViewCount;
+import com.tqz.java.hotitem.count.WindowResultFunction;
+import com.tqz.java.hotitem.entity.UserBehavior;
 import org.apache.flink.api.common.functions.FilterFunction;
 import org.apache.flink.api.java.io.PojoCsvInputFormat;
 import org.apache.flink.api.java.typeutils.PojoTypeInfo;

@@ -11,7 +11,7 @@ object KafkaConnectorConsumerApp {
   def main(args: Array[String]): Unit = {
     val env = StreamExecutionEnvironment.getExecutionEnvironment
     val properties = new Properties()
-    properties.setProperty("bootstrap.servers", "10.101.50.10:9092")
+    properties.setProperty("bootstrap.servers", "120.79.241.167:9092")
     properties.setProperty("group.id", "test")
     val stream = env
       .addSource(new FlinkKafkaConsumer[String]("pktest", new SimpleStringSchema(), properties))

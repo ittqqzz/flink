@@ -1,4 +1,4 @@
-package com.tqz.scala.project
+package com.tqz.scala.kafka
 
 import java.sql.{Connection, DriverManager, PreparedStatement}
 
