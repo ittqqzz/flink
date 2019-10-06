@@ -2,11 +2,16 @@ package com.tqz.java.es;
 
 import org.elasticsearch.action.ActionFuture;
 import org.elasticsearch.action.admin.indices.delete.DeleteIndexResponse;
+import org.elasticsearch.action.bulk.BulkRequestBuilder;
+import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.delete.DeleteRequest;
 import org.elasticsearch.action.delete.DeleteResponse;
 import org.elasticsearch.action.get.GetResponse;
+import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.action.update.UpdateRequest;
+import org.elasticsearch.action.update.UpdateResponse;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
@@ -21,8 +26,12 @@ import org.elasticsearch.transport.client.PreBuiltTransportClient;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+
+import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
 
 public class ESStudy {
 
@@ -47,18 +56,18 @@ public class ESStudy {
     }
 
     /**
-     * 创建索引
+     * 创建索引并赋初值
      *
      * @throws IOException
      */
-    public static void addIndex() throws IOException {
+    public static void addIndexByBuilder() throws IOException {
         /*
          *建立文档对象
          * 参数一 blog1：表示索引对象
          * 参数二 article：类型
          * 参数三 1：建立id
          */
-        XContentBuilder builder = XContentFactory.jsonBuilder()
+        XContentBuilder builder = jsonBuilder()
                 .startObject()
                 .field("id", 1)
                 .field("title", "elasticSearch搜索引擎")
@@ -75,6 +84,48 @@ public class ESStudy {
         long version = indexResponse.getVersion();
         RestStatus status = indexResponse.status();
         System.out.println("index索引：" + index + "--类型：" + type + "--索引id：" + id + "--版本：" + version + "--状态：" + status);
+    }
+
+    // 通过 json 创建索引并赋初值
+    public static void addIndexByJson() {
+        Map<String, Object> json = new HashMap<String, Object>();
+        json.put("user", "kimchy5");
+        json.put("postDate", new Date());
+        json.put("message", "trying out Elasticsearch");
+        // 第一个参数：索引名；
+        // 第二个参数：索引类型；
+        // 第三个参数：索引ID(相同的id时修改数据，默认为随机字符串)
+        IndexResponse indexResponse = client.prepareIndex("twitter", "json", "1").setSource(json).get();
+
+        // 结果获取
+        String index = indexResponse.getIndex();
+        String type = indexResponse.getType();
+        String id = indexResponse.getId();
+        long version = indexResponse.getVersion();
+        RestStatus status = indexResponse.status();
+        System.out.println("index索引：" + index + "--类型：" + type + "--索引id：" + id + "--版本：" + version + "--状态：" + status);
+    }
+
+    public static void addIndexData() {
+        // 批量插入数据，删除和修改也可以
+        BulkRequestBuilder bulkRequest = client.prepareBulk();
+        Map<String, Object> json2 = new HashMap<String, Object>();
+        json2.put("user", "Tony");
+        json2.put("postDate", new Date());
+        json2.put("message", "Elasticsearch is awesome");
+        Map<String, Object> json3 = new HashMap<String, Object>();
+        json3.put("user", "Piter");
+        json3.put("postDate", new Date());
+        json3.put("message", "全文搜索引擎");
+//        IndexRequest request = client.prepareIndex("twitter", "tweet", "2").setSource(json2).request();
+//        IndexRequest request2 = client.prepareIndex("twitter", "tweet", "3").setSource(json3).request();
+        IndexRequest request = client.prepareIndex("twitter", "tweet").setSource(json2).request();
+        IndexRequest request2 = client.prepareIndex("twitter", "tweet").setSource(json3).request();
+        bulkRequest.add(request);
+        bulkRequest.add(request2);
+
+        BulkResponse bulkResponse = bulkRequest.execute().actionGet();
+        System.out.println("=======\n批量添加状态：" + bulkResponse.status());
     }
 
     /**
@@ -193,15 +244,44 @@ public class ESStudy {
             SearchHit searchHit = iterator.next();
             System.out.println(searchHit.getSourceAsString());
             Map<String, Object> source = searchHit.getSource();
-            System.out.println(source.get("id")+"    "+source.get("title")+"    "+source.get("content"));
+            System.out.println(source.get("id") + "    " + source.get("title") + "    " + source.get("content"));
         }
+
+    }
+
+    // 更新索引数据
+    public static void updateIndexData() throws Exception {
+        //更新索引（根据索引，类型，id）
+        UpdateRequest updateRequest = new UpdateRequest("twitter", "json", "1")
+                .doc(jsonBuilder().startObject().field("message", "如果我说爱我没有如果").endObject());
+        UpdateResponse response = client.update(updateRequest).get();
+        System.out.println("=======\n更新结果：" + response.status());
+    }
+
+    // 插入更新：更新时数据不存在就插入
+    public static void updateIndexDataOrAdd() throws Exception {
+        // 如果不存在 id 为 4 的则插入 message 为 IndexRequest 的内容
+        // 如果存在则更新 message 为 UpdateRequest 的内容
+        IndexRequest indexRequest = new IndexRequest("twitter", "tweet", "4")
+                .source(jsonBuilder().startObject()
+                        .field("message", "每当我迷失在黑夜里")
+                        .endObject());
+        UpdateRequest updateRequest2 = new UpdateRequest("twitter", "tweet", "4")
+                .doc(jsonBuilder().startObject()
+                        .field("message", "请照亮我前行")
+                        .endObject())
+                .upsert(indexRequest);
+        UpdateResponse response = client.update(updateRequest2).get();
+        System.out.println("=======\n更新结果：" + response.status());
 
     }
 
     public static void main(String[] args) throws Exception {
         getConnect();
 
-//        addIndex();
+//        addIndexByBuilder();
+//        addIndexByJson();
+//        addIndexData();
 //        deleteByDocId();
 //        deleteByIndexName("blog");
 //        getIndexNoMapping();
@@ -209,7 +289,11 @@ public class ESStudy {
 //        getKeyWord();
 
 //        getByLike();
-        combinationQuery();
+//        combinationQuery();
+
+//        updateIndexData();
+        updateIndexDataOrAdd();
+
 
         closeConnect();
     }
