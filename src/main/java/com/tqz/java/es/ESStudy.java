@@ -1,20 +1,28 @@
 package com.tqz.java.es;
 
 import org.elasticsearch.action.ActionFuture;
+import org.elasticsearch.action.admin.indices.delete.DeleteIndexResponse;
 import org.elasticsearch.action.delete.DeleteRequest;
 import org.elasticsearch.action.delete.DeleteResponse;
+import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.index.IndexResponse;
+import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentFactory;
+import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.rest.RestStatus;
+import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.transport.client.PreBuiltTransportClient;
 
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.Iterator;
+import java.util.Map;
 
 public class ESStudy {
 
@@ -70,21 +78,138 @@ public class ESStudy {
     }
 
     /**
-     * 删除索引
+     * 删除索引下的文档
+     * 只删除指定 id 的数据
      *
      * @throws Exception
      */
-    public static void deleteByObject() throws Exception {
-        ActionFuture<DeleteResponse> res =  client.delete(new DeleteRequest("blog", "article", "1"));
+    public static void deleteByDocId() throws Exception {
+        ActionFuture<DeleteResponse> res = client.delete(new DeleteRequest("blog", "article", "1"));
         System.out.println("======= 删除结果 =======");
         System.out.println("======= " + "状态：" + res.actionGet().status() + " =======");
+    }
+
+    /**
+     * 删除索引以及全部数据
+     *
+     * @param indexName
+     */
+    public static void deleteByIndexName(String indexName) {
+        DeleteIndexResponse res = client.admin().indices().prepareDelete(indexName)
+                .execute().actionGet();
+        System.out.println("======= 删除结果 =======");
+        System.out.println("======= " + "状态：" + res.isAcknowledged() + " =======");
+    }
+
+    /**
+     * 查询
+     *
+     * @throws Exception
+     */
+    public static void getIndexNoMapping() throws Exception {
+        GetResponse actionGet = client.prepareGet("blog", "article", "1").execute().actionGet();
+        System.out.println("=======\n查询结果：" + actionGet.getSourceAsString());
+    }
+
+    // 查询所有文档数据
+    public static void getMatchAll() throws IOException {
+
+        // get() === execute().actionGet()
+        SearchResponse searchResponse = client.prepareSearch("blog")
+                .setTypes("article").setQuery(QueryBuilders.matchAllQuery())
+                .get();
+        // 获取命中次数，查询结果有多少对象
+        SearchHits hits = searchResponse.getHits();
+        System.out.println("查询结果有：" + hits.getTotalHits() + "条");
+        Iterator<SearchHit> iterator = hits.iterator();
+        while (iterator.hasNext()) {
+            // 每个查询对象
+            SearchHit searchHit = iterator.next();
+            System.out.println(searchHit.getSourceAsString()); // 获取字符串格式打印
+            System.out.println("title:" + searchHit.getSource().get("title"));
+        }
+    }
+
+    // 关键字查询
+    public static void getKeyWord() throws IOException {
+        long time1 = System.currentTimeMillis();
+        SearchResponse searchResponse = client.prepareSearch("blog")
+                .setTypes("article").setQuery(QueryBuilders.queryStringQuery("elasticSearch"))
+                .get();
+        // 获取命中次数，查询结果有多少对象
+        SearchHits hits = searchResponse.getHits();
+        System.out.println("查询结果有：" + hits.getTotalHits() + "条");
+        Iterator<SearchHit> iterator = hits.iterator();
+        while (iterator.hasNext()) {
+            // 每个查询对象
+            SearchHit searchHit = iterator.next();
+            System.out.println(searchHit.getSourceAsString()); // 获取字符串格式打印
+            System.out.println("title:" + searchHit.getSource().get("title"));
+        }
+        long time2 = System.currentTimeMillis();
+        System.out.println("花费" + (time2 - time1) + "毫秒");
+    }
+
+    // 通配符查询
+    public static void getByLike() throws IOException {
+        long time1 = System.currentTimeMillis();
+        SearchResponse searchResponse = client.prepareSearch("blog")
+//                .setTypes("article").setQuery(QueryBuilders.wildcardQuery("desc", "可爱*")) //通配符查询
+                .setTypes("article").setQuery(QueryBuilders.wildcardQuery("content", "服务器"))
+//                .setTypes("article").setQuery(QueryBuilders.termQuery("content","全文")) //词条查询
+                //一般情况下只显示十条数据
+                //from + size must be less than or equal to: [10000]
+                //Scroll Search->支持1万以上的数据量
+                // .setSize(10000)
+                .get();
+        // 获取命中次数，查询结果有多少对象
+        SearchHits hits = searchResponse.getHits();
+        System.out.println("查询结果有：" + hits.getTotalHits() + "条");
+        Iterator<SearchHit> iterator = hits.iterator();
+        while (iterator.hasNext()) {
+            // 每个查询对象
+            SearchHit searchHit = iterator.next();
+            System.out.println(searchHit.getSourceAsString()); // 获取字符串格式打印
+            System.out.println("title:" + searchHit.getSource().get("title"));
+        }
+        long time2 = System.currentTimeMillis();
+        System.out.println("花费" + (time2 - time1) + "毫秒");
+    }
+
+    // 聚合查询
+    public static void combinationQuery() throws Exception {
+        SearchResponse searchResponse = client.prepareSearch("blog").setTypes("article")
+                .setQuery(QueryBuilders.boolQuery().must(QueryBuilders.termQuery("title", "搜索"))// 词条查询
+                        //.must(QueryBuilders.rangeQuery("id").from(1).to(5))  // 范围查询
+                        //因为IK分词器，在存储的时候将英文都变成了小写
+                        .must(QueryBuilders.wildcardQuery("content", "Rest*".toLowerCase())) // 模糊查询
+                        .must(QueryBuilders.queryStringQuery("服电风扇丰盛的分器")) // 关键字（含有）
+                )
+                .get();
+        SearchHits hits = searchResponse.getHits();
+        System.out.println("总记录数：" + hits.getTotalHits());
+        Iterator<SearchHit> iterator = hits.iterator();
+        while (iterator.hasNext()) {
+            SearchHit searchHit = iterator.next();
+            System.out.println(searchHit.getSourceAsString());
+            Map<String, Object> source = searchHit.getSource();
+            System.out.println(source.get("id")+"    "+source.get("title")+"    "+source.get("content"));
+        }
+
     }
 
     public static void main(String[] args) throws Exception {
         getConnect();
 
-        //addIndex();
-        deleteByObject();
+//        addIndex();
+//        deleteByDocId();
+//        deleteByIndexName("blog");
+//        getIndexNoMapping();
+//        getMatchAll();
+//        getKeyWord();
+
+//        getByLike();
+        combinationQuery();
 
         closeConnect();
     }
