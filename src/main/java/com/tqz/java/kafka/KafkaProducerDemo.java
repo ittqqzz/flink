@@ -1,6 +1,7 @@
 package com.tqz.java.kafka;
 
 import com.tqz.java.kafka.entity.Company;
+import com.tqz.java.kafka.interceptor.CompanyProducerInterceptor;
 import com.tqz.java.kafka.serializer.CompanySerializer;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
@@ -23,6 +24,7 @@ public class KafkaProducerDemo {
         // 2. 指定生产者客户端连接 kafka 集群所需要的 broker 地址
         properties.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, HOST);
 
+        properties.put(ProducerConfig.INTERCEPTOR_CLASSES_CONFIG, CompanyProducerInterceptor.class.getName());
 
         // 创建生产者客户端
 //        KafkaProducer<String, String> producer = new KafkaProducer<>(properties);
