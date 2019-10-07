@@ -1,6 +1,10 @@
 package com.tqz.java.kafka.serializer;
 
 import com.tqz.java.kafka.entity.Company;
+import io.protostuff.LinkedBuffer;
+import io.protostuff.ProtostuffIOUtil;
+import io.protostuff.Schema;
+import io.protostuff.runtime.RuntimeSchema;
 import org.apache.kafka.common.serialization.Serializer;
 
 import java.nio.ByteBuffer;
@@ -33,6 +37,8 @@ public class CompanySerializer implements Serializer<Company> {
         if (data == null) {
             return null;
         }
+        // 手工序列化
+        /*
         byte[] name;
         byte[] address;
         try {
@@ -55,7 +61,21 @@ public class CompanySerializer implements Serializer<Company> {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return new byte[0];
+        */
+
+        // 使用 protostuff 序列化
+        Schema schema = RuntimeSchema.getSchema(data.getClass());
+        LinkedBuffer buffer = LinkedBuffer.allocate(LinkedBuffer.DEFAULT_BUFFER_SIZE);
+        byte[] protostuff = null;
+        try {
+            protostuff = ProtostuffIOUtil.toByteArray(data, schema, buffer);
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            buffer.clear();
+        }
+
+        return protostuff;
     }
 
     /**

@@ -1,6 +1,9 @@
 package com.tqz.java.kafka.deserializer;
 
 import com.tqz.java.kafka.entity.Company;
+import io.protostuff.ProtostuffIOUtil;
+import io.protostuff.Schema;
+import io.protostuff.runtime.RuntimeSchema;
 import org.apache.commons.lang.SerializationException;
 import org.apache.kafka.common.serialization.Deserializer;
 
@@ -19,6 +22,8 @@ public class CompanyDeserializer implements Deserializer<Company> {
         if (data == null) {
             return null;
         }
+        // 手动反序列化
+        /*
         if (data.length < 8) {
             throw new SerializationException("收到的 byte[] 大小小于 8，不符合预期");
         }
@@ -40,6 +45,13 @@ public class CompanyDeserializer implements Deserializer<Company> {
             e.printStackTrace();
         }
         return new Company(name, address);
+        */
+
+        // 使用 prorostuff 反序列化
+        Schema schema = RuntimeSchema.getSchema(Company.class);
+        Company company = new Company();
+        ProtostuffIOUtil.mergeFrom(data, company, schema);
+        return company;
     }
 
     @Override
