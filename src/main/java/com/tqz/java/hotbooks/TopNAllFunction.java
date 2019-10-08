@@ -7,7 +7,6 @@ import org.apache.flink.util.Collector;
 
 import java.sql.Timestamp;
 import java.util.Comparator;
-import java.util.Map;
 import java.util.TreeMap;
 
 /**
@@ -53,13 +52,10 @@ public class TopNAllFunction extends ProcessAllWindowFunction<Tuple2<String, Int
         }
 
         // 2. 将红黑树里面的 Top N 个数据全部发射出去
-        for (Map.Entry<Integer, Tuple2<String, Integer>> entry : treeMap.entrySet()) {
-            out.collect(
-                    "=================\n热销图书列表:\n"
-                            + new Timestamp(System.currentTimeMillis()) + treeMap.toString()
-                            + "\n===============\n"
-            );
-        }
-
+        out.collect(
+                "=================\n热销图书列表:\n"
+                        + new Timestamp(System.currentTimeMillis()) + treeMap.toString()
+                        + "\n===============\n"
+        );
     }
 }

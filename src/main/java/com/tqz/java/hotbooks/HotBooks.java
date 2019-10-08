@@ -33,7 +33,6 @@ public class HotBooks {
         properties.setProperty("bootstrap.servers", "120.79.241.167:9092");
         properties.setProperty("enable.auto.commit", "true");
         FlinkKafkaConsumer<String> input = new FlinkKafkaConsumer<>("topn", new SimpleStringSchema(), properties);
-
         DataStream<String> stream = env.addSource(input);
 
         // 3. 将获取的每一条数据组装成：（句子，1）的格式
@@ -47,9 +46,9 @@ public class HotBooks {
         // todo 窗口理解不透彻。。
         DataStream res = formatStream
                 .keyBy(0)
-                .window(SlidingProcessingTimeWindows.of(Time.seconds(5), Time.seconds(2))) // 每隔 2 秒统计最近 5 秒的数据
+                .window(SlidingProcessingTimeWindows.of(Time.seconds(4), Time.seconds(2))) // 每隔 2 秒统计最近 4 秒的数据
                 .sum(1)
-                .windowAll(TumblingProcessingTimeWindows.of(Time.seconds(2)))// 每隔 5 秒后窗口往后翻滚一次
+                .windowAll(TumblingProcessingTimeWindows.of(Time.seconds(2)))
                 .process(new TopNAllFunction(3));// 将前面窗口统计的数据拿来排序
 
         res.print();

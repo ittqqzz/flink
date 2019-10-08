@@ -45,6 +45,9 @@ public class HotItems {
          */
         DataStream<UserBehavior> dataSource = env.createInput(csvInput, pojoType);
         /*
+         * flink 工作在 Event Time 的时候，每一个元素必须被分配一个时间戳。
+         * 即使是数据自己携带了时间戳也要通过分配一次告知 flink
+         *
          * 2. 获得业务时间，以及生成 Watermark
          */
         DataStream<UserBehavior> timeData = dataSource.assignTimestampsAndWatermarks(new AscendingTimestampExtractor<UserBehavior>() {
@@ -69,6 +72,7 @@ public class HotItems {
                 pvData
                         .keyBy("itemId")
                         .timeWindow(Time.minutes(60), Time.minutes(5))
+                        // 指定完窗口后，必须要指明在窗口上面的计算 WindowFunction 就是干这个的
                         .aggregate(new CountAgg(), new WindowResultFunction()); // 现在我们得到了每个商品在每个窗口的点击量的数据流。
 
         /*
