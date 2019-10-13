@@ -32,7 +32,7 @@ public class KafkaProducerDemo {
 
         // 构建所需要发送的消息
 //        ProducerRecord<String, String> record = new ProducerRecord<>(TOPIC, "Hello Kafka");
-        ProducerRecord<String, Company> record = new ProducerRecord<>(TOPIC, new Company("同程艺龙", "suzhou"));
+        ProducerRecord<String, Company> record = new ProducerRecord<>(TOPIC, 0, null, new Company("同程艺龙", "suzhou"));
 
         // 发送消息
         producer.send(record);

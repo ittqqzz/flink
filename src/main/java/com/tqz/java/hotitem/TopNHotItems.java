@@ -56,7 +56,6 @@ public class TopNHotItems extends KeyedProcessFunction<Tuple, ItemViewCount, Str
         itemState.add(input);
         // 注册 windowEnd+1 的 EventTime Timer, 当触发时，说明收齐了属于 windowEnd 窗口的所有商品数据
         // 水印是 EventTime 世界里面的时钟，他们定义了何时不再等待更早的数据。
-        // TODO 水印到底怎么工作的
         context.timerService().registerEventTimeTimer(input.windowEnd + 1);
     }
 

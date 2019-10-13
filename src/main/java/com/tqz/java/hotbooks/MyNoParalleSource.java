@@ -38,7 +38,7 @@ public class MyNoParalleSource implements SourceFunction<String> {
                 System.out.println("==========");
             }
             System.out.println(books.get(i));
-            if (count == 2) {
+            if (count == 4) {
                 count = 0;
                 System.out.println("==========");
             }
