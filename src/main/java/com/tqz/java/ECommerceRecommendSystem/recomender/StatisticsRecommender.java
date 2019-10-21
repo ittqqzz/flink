@@ -1,5 +1,6 @@
 package com.tqz.java.ECommerceRecommendSystem.recomender;
 
+import com.tqz.java.ECommerceRecommendSystem.recomender.sink.AverageProductsMongoOutputFormat;
 import com.tqz.java.ECommerceRecommendSystem.recomender.sink.RateMoreProductsMongoOutputFormat;
 import com.tqz.java.ECommerceRecommendSystem.recomender.sink.RateMoreRecentlyProductsMongoOutputFormat;
 import lombok.Data;
@@ -47,6 +48,7 @@ public class StatisticsRecommender {
         /**
          * 加载 MongoDB 的事以后再说
          */
+
         ExecutionEnvironment env = ExecutionEnvironment.getExecutionEnvironment();
         env.setParallelism(1);
         BatchTableEnvironment tableEnv = BatchTableEnvironment.getTableEnvironment(env);
@@ -76,7 +78,14 @@ public class StatisticsRecommender {
         Table resultTable2 =  tableEnv.sqlQuery("select productId, count(productId) as countNum ,yearmonth from ratingOfMonth group by yearmonth,productId order by yearmonth desc, countNum desc");
         DataSet<Row> res2 = tableEnv.toDataSet(resultTable2, Row.class);
         res2.output(new RateMoreRecentlyProductsMongoOutputFormat());
-        //env.execute("StatisticsRecommender");
+
+        // 三、商品平均得分统计：根据历史数据中所有用户对商品的评分，周期性的计算每个商品的平均得分
+        // 借助一里面的表执行 sql
+        Table resultTable3 =  tableEnv.sqlQuery("select productId, avg(score) as scoreAvg from ratings group by productId order by scoreAvg desc");
+        DataSet<Row> res3 = tableEnv.toDataSet(resultTable3, Row.class);
+        res3.output(new AverageProductsMongoOutputFormat());
+
+        env.execute("StatisticsRecommender");
     }
 
     @Data
