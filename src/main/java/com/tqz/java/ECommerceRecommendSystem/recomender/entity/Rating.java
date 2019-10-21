@@ -6,8 +6,8 @@ import lombok.Data;
 @Data
 @AllArgsConstructor
 public class Rating {
-    private Integer userId;
-    private String productId;
-    private Double score;
-    private Integer timestamp;
+    public Integer userId;
+    public String productId;
+    public Double score;
+    public Integer timestamp;
 }
