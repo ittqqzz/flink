@@ -1,17 +1,19 @@
 package com.tqz.java.ECommerceRecommendSystem.recomender;
 
-import com.mongodb.hadoop.io.BSONWritable;
-import com.mongodb.hadoop.mapred.MongoInputFormat;
+import com.tqz.java.ECommerceRecommendSystem.recomender.sink.RateMoreProductsMongoOutputFormat;
+import com.tqz.java.ECommerceRecommendSystem.recomender.sink.RateMoreRecentlyProductsMongoOutputFormat;
+import lombok.Data;
+import org.apache.flink.api.common.functions.RichMapFunction;
+import org.apache.flink.api.common.operators.Order;
 import org.apache.flink.api.java.DataSet;
 import org.apache.flink.api.java.ExecutionEnvironment;
-import org.apache.flink.api.java.hadoop.mapred.HadoopInputFormat;
-import org.apache.flink.api.java.tuple.Tuple2;
+import org.apache.flink.api.java.operators.MapOperator;
 import org.apache.flink.table.api.Table;
 import org.apache.flink.table.api.java.BatchTableEnvironment;
 import org.apache.flink.types.Row;
-import org.apache.hadoop.mapred.JobConf;
 
-import javax.xml.crypto.Data;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 
 /**
@@ -42,32 +44,48 @@ public class StatisticsRecommender {
 //        hdIf.getJobConf().set("mongo.input.uri", MONGO_URI);
 //        DataSet<Tuple2<BSONWritable, BSONWritable>> input = env.createInput(hdIf);
 
-/**
- * 加载 MongoDB 的事以后再说
- */
-
+        /**
+         * 加载 MongoDB 的事以后再说
+         */
         ExecutionEnvironment env = ExecutionEnvironment.getExecutionEnvironment();
+        env.setParallelism(1);
         BatchTableEnvironment tableEnv = BatchTableEnvironment.getTableEnvironment(env);
         String PATH = "C:\\Users\\tqz\\IdeaProjects\\flink\\src\\main\\resources\\ratings.csv";
-        DataSet<Rating> csv = env.readCsvFile(PATH).pojoType(Rating.class, "userId", "productId",
-                "score", "timestamp");
+        DataSet<Rating> csv = env.readCsvFile(PATH).pojoType(Rating.class, "userId", "productId", "score", "timestamp");
 
-        // 数据源转为 table
-        Table ratingTable = tableEnv.fromDataSet(csv);
-        tableEnv.registerTable("ratings", ratingTable);
+        // 一、历史热门商品统计：就是统计商品ID出现的次数，然后降序排列
+        Table table1 = tableEnv.fromDataSet(csv);
+        tableEnv.registerTable("ratings", table1);
+        Table resultTable1 = tableEnv.sqlQuery("SELECT productId, count(productId) AS countNum from ratings GROUP BY productId order by countNum desc");
+        DataSet<Row> res1 = tableEnv.toDataSet(resultTable1, Row.class);
+        res1.output(new RateMoreProductsMongoOutputFormat());
 
-        // 使用 flink 的 sql 执行统计，视频： 10/29
-        // 历史热门商品统计
-        Table resultTable = tableEnv.sqlQuery("SELECT productId, count(productId) AS countNum from ratings GROUP BY productId");
-        DataSet<Row> res = tableEnv.toDataSet(resultTable, Row.class);
-        res.print();
-
+        // 二、最近热门商品统计
+        // 将时间戳改为年月格 1260759144000  => 201605，然后按照时间分组求出每个月的热门商品
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyyMM");
+        MapOperator<Rating, Rating> formatCsv = csv.map(new RichMapFunction<Rating, Rating>() {
+            @Override
+            public Rating map(Rating value) throws Exception {
+                String formatTime = simpleDateFormat.format(new Date(value.timestamp * 1000L));
+                value.setYearmonth(Integer.valueOf(formatTime));
+                return value;
+            }
+        });
+        Table table2 = tableEnv.fromDataSet(formatCsv);
+        tableEnv.registerTable("ratingOfMonth", table2);
+        Table resultTable2 =  tableEnv.sqlQuery("select productId, count(productId) as countNum ,yearmonth from ratingOfMonth group by yearmonth,productId order by yearmonth desc, countNum desc");
+        DataSet<Row> res2 = tableEnv.toDataSet(resultTable2, Row.class);
+        res2.output(new RateMoreRecentlyProductsMongoOutputFormat());
+        //env.execute("StatisticsRecommender");
     }
 
+    @Data
     public static class Rating {
         public Integer userId;
         public String productId;
         public Double score;
         public Integer timestamp;
+        public Integer yearmonth;
+
     }
 }
